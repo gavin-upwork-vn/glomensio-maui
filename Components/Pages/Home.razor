@@ -1,0 +1,244 @@
+﻿@page "/home"
+@using GlomensioApp.Components.Pages.DialogComponet
+@using GlomensioApp.Model
+@using GlomensioApp.Services
+@inject IDeviceIotService DeviceIotService
+@inject IDialogService DialogService
+@inject NavigationManager Navigation
+<style>
+    .bordered-card {
+        border: 2px solid black;
+        padding: 10px;
+        border-radius: 10px;
+        max-width: 900px;
+        margin: auto;
+    }
+</style>
+
+<MudCard Class="bordered-card">
+
+    <MudGrid Justify="Justify.Center">
+        <MudItem xs="4">
+            <MudText Align="Align.Center">Devices</MudText>
+        </MudItem>
+        <MudItem xs="4">
+            <MudText Align="Align.Center" Color="Color.Success">Blink</MudText>
+        </MudItem>
+        <MudItem xs="4">
+            <MudText Align="Align.Center" Color="Color.Error">Emg</MudText>
+        </MudItem>
+    </MudGrid>
+    <MudGrid Justify="Justify.Center">
+        <MudItem xs="4">
+            <MudText Align="Align.Center">@GetTotalDevices()</MudText>
+        </MudItem>
+        <MudItem xs="4">
+            <MudText Align="Align.Center" Color="Color.Success">@GetTotalBlinkDevices()</MudText>
+        </MudItem>
+        <MudItem xs="4">
+            <MudText Align="Align.Center" Color="Color.Error">@GetEmgDevice()</MudText>
+        </MudItem>
+    </MudGrid>
+    <MudDivider />
+    <MudGrid Style="margin-top: 3px;">
+        <MudItem xs="4">
+            <MudButton Variant="Variant.Filled" Align="Align.Center" Color="Color.Primary" @onclick="ReloadDevices">Reload</MudButton>
+        </MudItem>
+        <MudItem xs="4">
+            <MudButton Variant="Variant.Filled" Align="Align.Center" Color="Color.Warning" @onclick="OnOpenWiffiSertting">Conf Wifi</MudButton>
+        </MudItem>
+        <MudItem xs="4">
+            <MudButton Variant="Variant.Filled" Align="Align.Center" Color="Color.Success" @onclick="AddDevice">Add</MudButton>
+        </MudItem>
+    </MudGrid>
+    <MudText>*: Please press the blinking SOS button to deactivate the emergency mode. | V1.0.1</MudText>
+</MudCard>
+@foreach (var item in devices)
+{
+    <MudCard Class="@(item.EmgState == 1 ? "bordered-card blinking" : "bordered-card")" Style="margin-top: 5px;">
+        <MudGrid Justify="Justify.Center">
+            <MudItem xs="2">
+                <MudText Align="Align.Left">ID: </MudText>
+            </MudItem>
+            <MudItem xs="7">
+                <MudText Align="Align.Center" Color="Color.Warning">@item.MacId</MudText>
+            </MudItem>
+            <MudItem xs="3">
+                <MudFab OnClick="@(() => ChangeEmg(item))" Color="@(item.EmgState == 1? Color.Error: Color.Primary)" StartIcon="@Icons.Material.Filled.Sos" Size="Size.Medium" />
+            </MudItem>
+        </MudGrid>
+        <MudDivider style="margin-top:5px; padding-top:3px" />
+        <MudGrid Justify="Justify.Center">
+            <MudItem xs="7">
+                <MudText Align="Align.Left">Green Flashing: </MudText>
+            </MudItem>
+            <MudItem xs="5">
+                <MudButton FullWidth="true" OnClick="@(() => ChangeBlink(item))" Variant="Variant.Filled" Style="@($"background-color: {(@item.Blink == 1 ? yellowgreen : red)}; color: white;")">
+                    @(@item.Blink == 1 ? "On" : "Off")
+                </MudButton>
+
+            </MudItem>
+        </MudGrid>
+        <MudDivider />
+        <MudGrid Justify="Justify.Center">
+            <MudItem xs="7">
+                <MudText Align="Align.Left">Phone Emg: </MudText>
+            </MudItem>
+            <MudItem xs="5">
+                <MudText Style="margin-left: 15px" Align="Align.Left">@item.PhoneActive </MudText>
+            </MudItem>
+        </MudGrid>
+        <MudDivider />
+        <MudGrid Justify="Justify.Center">
+            <MudItem xs="7">
+                <MudText Align="Align.Left">EnableOTA: </MudText>
+            </MudItem>
+            <MudItem xs="5">
+                <MudButton FullWidth="true" OnClick="@(() => ChangeEnableOTA(item))" Variant="Variant.Filled" Style="@($"background-color: {(@item.EnableOTA ? yellowgreen : red)}; color: white;")">
+                    @(@item.EnableOTA ? "On" : "Off")
+                </MudButton>
+            </MudItem>
+        </MudGrid>
+        <MudDivider />
+        <MudGrid Justify="Justify.Center">
+            <MudItem xs="7">
+                <MudText Align="Align.Left">VersionFW:  </MudText>
+            </MudItem>
+            <MudItem xs="5">
+                <MudText Style="margin-left: 15px" Align="Align.Left">@item.VersionFW </MudText>
+            </MudItem>
+        </MudGrid>
+        <MudDivider />
+        <MudGrid Justify="Justify.Center">
+            <MudItem xs="7">
+                <MudText Align="Align.Left">ALS:  </MudText>
+            </MudItem>
+            <MudItem xs="5">
+                <MudText Style="margin-left: 15px" Align="Align.Left">@item.Als </MudText>
+            </MudItem>
+        </MudGrid>
+        <MudDivider />
+        <MudGrid Justify="Justify.Center">
+            <MudItem xs="7">
+                <MudText Align="Align.Left">Status:  </MudText>
+            </MudItem>
+            <MudItem xs="5">
+                <MudButton FullWidth="true" Variant="Variant.Filled" Style="@($"background-color: {(@item.Status == 1 ? yellowgreen : red)}; color: white;")">
+                    @(@item.Status == 1 ? "On" : "Offline")
+                </MudButton>
+            </MudItem>
+        </MudGrid>
+        <MudDivider style="margin-top:5px" />
+        <MudGrid Justify="Justify.Center">
+            <MudItem xs="12">
+                <MudButton OnClick="@(() => ShowUpdateDeivceIot(item))" Variant="Variant.Filled" DropShadow="false" Color="Color.Primary" FullWidth="true">Device Details</MudButton>
+            </MudItem>
+        </MudGrid>
+
+    </MudCard>
+}
+
+@code {
+    private string yellowgreen = "yellowgreen";
+    private string red = "red";
+    private bool isNotified = false;
+    private List<DeviceIot> devices = new List<DeviceIot>();
+    private string currentClass = "green-background";
+    System.Timers.Timer timer;
+    public bool _isProcessingData = false;
+    public int counter = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        devices = await DeviceIotService.LoadDevicesAsync();
+        timer = new System.Timers.Timer(1000);
+        timer.Elapsed += OnReloadDataTimer;
+        timer.Start();
+    }
+
+    private void OnReloadDataTimer(object? sender, System.Timers.ElapsedEventArgs e)
+    {
+        Task.Run(() =>
+        {
+            MainThread.BeginInvokeOnMainThread(async () =>
+            {
+                if (_isProcessingData)
+                {
+                    counter++;
+                    if (counter == 5)
+                    {
+                        counter = 0;
+                        _isProcessingData = false;
+                    }
+                    return;
+                }
+                try
+                {
+                    _isProcessingData = true;
+                    await ReloadDevices();
+                    _isProcessingData = false;
+                }
+                catch (Exception)
+                {
+                }
+
+            });
+        });
+    }
+
+    private async Task ReloadDevices()
+    {
+        devices = await DeviceIotService.LoadDevicesAsync();
+        StateHasChanged();
+    }
+
+    private async Task OnOpenWiffiSertting()
+    {
+        await Launcher.Default.OpenAsync(new Uri("http://10.10.0.1/"));
+    }
+
+    private async Task AddDevice()
+    {
+        var options = new DialogOptions() { MaxWidth = MaxWidth.ExtraSmall, FullWidth = true, CloseOnEscapeKey = true };
+        var dialog = await DialogService.ShowAsync<AddDeviceIot>("Simple Dialog", options);
+        if (dialog.Result.Status == TaskStatus.RanToCompletion)
+        {
+            devices = await DeviceIotService.LoadDevicesAsync();
+            StateHasChanged();
+        }
+        StateHasChanged();
+    }
+
+
+    private async Task ChangeEnableOTA(DeviceIot device)
+    {
+        await DeviceIotService.OnChangeEnableOTA(device);
+    }
+    private async Task ChangeBlink(DeviceIot device)
+    {
+        await DeviceIotService.OnBlinkDevice(device);
+    }
+    private async Task ChangeEmg(DeviceIot device)
+    {
+        await DeviceIotService.OnChangeEmg(device);
+    }
+    private int GetTotalDevices()
+    {
+        return devices.Count;
+    }
+    private int GetTotalBlinkDevices()
+    {
+        return devices.Count(device => device.Blink == 1);
+    }
+
+    private int GetEmgDevice()
+    {
+        return devices.Count(device => device.EmgState == 1);
+    }
+
+    private void ShowUpdateDeivceIot(DeviceIot request)
+    {
+        Navigation.NavigateTo($"/UpdateDeviceIot/{request.MacId}");
+    }
+
+}

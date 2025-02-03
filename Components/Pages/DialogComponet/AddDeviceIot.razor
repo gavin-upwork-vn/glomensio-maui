@@ -1,0 +1,47 @@
+﻿@page "/add-device-iot"
+@using GlomensioApp.Model
+@using GlomensioApp.Services
+@inject ISnackbar Snackbar
+@inject IDeviceIotService DeviceIotService;
+@inject NavigationManager Navigation
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h5">         
+                Create Device
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudTextField @bind-Value="device.MacId" Label="MacID" Variant="Variant.Text"> </MudTextField>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Primary" OnClick="AddDevice">Add Device</MudButton>
+    </DialogActions>
+</MudDialog>
+@code {
+    [CascadingParameter]
+    private MudDialogInstance MudDialog { get; set; }
+
+    private DeviceIot device = new DeviceIot();
+
+  
+    private async Task AddDevice()
+    {
+        try
+        {
+            await DeviceIotService.AddDeviceToUserAsync(device);
+            Snackbar.Add("Device create successfully", Severity.Success);
+            Navigation.NavigateTo("/home");
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error create device: {ex.Message}", Severity.Error);
+        }
+    }
+
+
+    private void Cancel() => MudDialog.Cancel();
+
+}
+
+

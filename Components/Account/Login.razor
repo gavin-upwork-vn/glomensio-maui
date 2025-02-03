@@ -1,0 +1,116 @@
+﻿@page "/"
+@using System.ComponentModel.DataAnnotations
+@using GlomensioApp.Commons
+@using GlomensioApp.Services.Accounts
+@using GlomensioApp.Services.Accounts.Models
+@inject IAccountService AccountService
+@inject NavigationManager NavigationManager
+<style>
+    body, html {
+        height: 100%;
+        width: 100%;
+        margin: 0;
+        font-family: Arial, sans-serif;
+        background-image: url('images/background.jpg');
+        background-repeat: no-repeat;
+        background-position: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .login-container {
+        background-color: rgba(255, 255, 255, 0.8);
+        padding: 20px;
+        border-radius: 10px;
+        text-align: center;
+        min-width: 400px;
+        width: 100%;
+    }
+
+
+</style>
+
+<MudContainer>
+    <div class="login-container">
+       <div class="logo-container" style="margin-bottom:2px">
+            <MudImage Src="images/logo.png" Width="100" />
+        </div>
+        <MudTextField @bind-Value="model.Email" Placeholder="Email" Variant="Variant.Outlined" Clearable="true" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Person" AdornmentColor="Color.Tertiary" Immediate="true" Style="color: black;" />
+         
+        <MudTextField @bind-Value="model.Password" Placeholder="Password" Variant="Variant.Outlined" Clearable="true" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Lock" AdornmentColor="Color.Tertiary" Immediate="true" Style="color: black;" For="@(() => model.Password)" InputType="InputType.Password" />
+        <div class="d-flex align-center justify-space-between">
+            <MudCheckBox @bind-Value="@model.RememberLogin" Label="Remember login" Color="Color.Primary" Style="color: black;"></MudCheckBox>
+            <MudLink Href="/forgot" Style="color: black; font-weight: bold; text-decoration: none;">
+                Forgot Password?
+            </MudLink>
+        </div>
+        <MudButton Variant="Variant.Filled" DropShadow="false" Color="Color.Primary" @onclick="DangNhap" Disabled="@IsLoginDisabled">Login</MudButton>
+        <MudCardHeader Style="display: flex; justify-content: center; align-items: center; color: black;">
+            <MudText>Don't have an account?</MudText>
+            <MudText Style="font-weight: bold; cursor: pointer;">
+                <MudLink Href="/register" Style="color: black;">Register</MudLink>
+            </MudText>
+        </MudCardHeader>
+        <MudButton Variant="Variant.Filled" DropShadow="false" Color="Color.Warning" @onclick="OnOpenWifiSetting">Config wifi</MudButton>
+        @if (showError)
+        {
+            <MudText Typo="Typo.body2" Color="@Color.Error">
+                Username or password wrong!
+            </MudText>
+        }
+    </div>
+</MudContainer>
+@code {
+    public class LoginArg
+    {
+        [Required]
+        public string Email { get; set; }
+
+        [Required]
+        public string Password { get; set; }
+
+        [Required]
+        public bool RememberLogin { get; set; }
+
+    }
+
+    LoginArg model = new LoginArg();
+    private bool IsLoginDisabled => string.IsNullOrEmpty(model.Email) || string.IsNullOrEmpty(model.Password);
+    private bool showError = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var rememberLogin = await SecureStorage.GetAsync(StorageKey.RememberLogin);
+        if ((rememberLogin == "true"))
+        {
+            model.Email = await SecureStorage.GetAsync(StorageKey.Email);
+            model.Password = await SecureStorage.GetAsync(StorageKey.Password);
+            model.RememberLogin = true;
+        }
+    }
+
+    private async Task DangNhap()
+    {
+        var user = await AccountService.LoginAsync(new LoginRequest()
+        {
+            Email = model.Email,
+            Password = model.Password,
+            RememberLogin = model.RememberLogin
+        });
+
+        if (user != null)
+        {
+            showError = false;
+            UriHelper.NavigateTo("/home");
+        }
+        else
+        {
+            showError = true;
+        }
+    }
+
+    private async Task OnOpenWifiSetting()
+    {
+        await Launcher.Default.OpenAsync(new Uri("http://10.10.0.1/"));
+    }
+}
