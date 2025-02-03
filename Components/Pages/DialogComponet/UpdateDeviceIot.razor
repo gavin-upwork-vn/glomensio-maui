@@ -1,0 +1,215 @@
+﻿@page "/UpdateDeviceIot/{MacId}"
+@using GlomensioApp.Model
+@using GlomensioApp.Services
+@inject ISnackbar Snackbar
+@inject IDeviceIotService DeviceIotService;
+@inject NavigationManager Navigation
+<style>
+    .bordered-card {
+    border: 2px solid black;
+    padding: 10px;
+    border-radius: 10px;
+    max-width: 900px;
+    margin: auto;
+    }
+
+    .centered-button {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    }
+</style>
+
+<MudCard Class="bordered-card">
+    <MudCardContent>
+        <MudText Typo="Typo.h6" Align="Align.Center">Disconnect Wifi</MudText>
+        <div class="centered-button">
+            <MudButton OnClick="ChangeWifi" Variant="Variant.Filled" Style="@($"background-color: {(device.OffWifi == 1 ? yellowgreen : red)}; color: white;")">
+                @(device.OffWifi == 1 ? "On" : "Off")
+            </MudButton>
+        </div>
+    </MudCardContent>
+</MudCard>
+<MudCard Class="bordered-card" Style="margin-top: 5px;">
+    <MudCardContent>
+        <MudTextField @bind-Value="device.MacId" Label="MacID" Variant="Variant.Text" ReadOnly> </MudTextField>
+        @* <MudColorPicker PickerVariant="PickerVariant.Dialog" ShowToolbar="true" Label="Color picker:" @bind-Text="_colorValue" Placeholder="Select Color" /> *@
+        <MudSlider @onchange="UpdateColor" @bind-Value="brightnessValue" Min="10" Max="100" Color="Color.Info">Brightness: @brightnessValue</MudSlider>
+        <MudSlider @onchange="UpdateColorTemperature" @bind-Value="kValue" Min="2700" Max="4000" Color="Color.Error">K: @kValue</MudSlider>
+        <MudText Style="@($"background-color: rgb({redValue}, {greenValue}, {blueValue})")">Color Display</MudText>
+        <MudTextField @bind-Value="device.Duration" Label="Duration(s)" Variant="Variant.Text"> </MudTextField>
+        <MudTextField @bind-Value="device.TimeActiveLed" Label="Time Active Led" Variant="Variant.Text"></MudTextField>
+        <MudTextField @bind-Value="device.AlsMin" Label="AlsMin" Variant="Variant.Text"> </MudTextField>
+        <MudTextField @bind-Value="device.AlsMax" Label="AlsMax" Variant="Variant.Text"></MudTextField>
+        <MudTextField @bind-Value="device.PhoneActive" Label="Phone Active" Variant="Variant.Text"></MudTextField>
+
+    </MudCardContent>
+    <MudGrid>
+        <MudItem xs="6">
+            <MudButton OnClick="RemoveDevice" Variant="Variant.Filled" Color="Color.Error">Delete Device</MudButton>
+        </MudItem>
+        <MudItem xs="6">
+            <MudButton OnClick="UpdateDevice" Variant="Variant.Filled" Color="Color.Primary">Update Device</MudButton>
+        </MudItem>
+    </MudGrid>
+</MudCard>
+@code {
+    private string yellowgreen = "yellowgreen";
+    private string red = "red";
+    [Parameter]
+    public string MacId { get; set; }
+    private DeviceIot device;
+    private int brightnessValue;
+    private int kValue;
+    private int redValue;
+    private int greenValue;
+    private int blueValue;
+    // public string _colorValue;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!string.IsNullOrEmpty(MacId))
+        {
+            try
+            {
+                device = await DeviceIotService.GetDeviceByMacId(MacId);
+                if (device == null)
+                {
+                    Snackbar.Add("Device not found", Severity.Error);
+                }
+                brightnessValue = device.Brightness;
+                kValue = device.K;
+                redValue = device.ColorR;
+                greenValue = device.ColorG;
+                blueValue = device.ColorB;
+            }
+            catch (Exception ex)
+            {
+                Snackbar.Add($"Error loading device: {ex.Message}", Severity.Error);
+            }
+        }
+        else
+        {
+            Snackbar.Add("Invalid device ID", Severity.Error);
+        }
+    }
+
+    private async Task UpdateDevice()
+    {
+        try
+        {
+            device.ColorR = redValue;
+            device.ColorG = greenValue;
+            device.ColorB = blueValue;
+            device.Brightness = brightnessValue;
+            device.K = kValue;
+            await DeviceIotService.UpdateDeviceAsync(device);
+            Snackbar.Add("Device updated successfully", Severity.Success);
+            Navigation.NavigateTo("/home");
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error updating device: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private async Task RemoveDevice()
+    {
+        try
+        {
+            device.Brightness = brightnessValue;
+            device.K = kValue;
+            await DeviceIotService.RemoveDeviceAsync(device);
+            Snackbar.Add("Remove device successfully", Severity.Success);
+            Navigation.NavigateTo("/home");
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error updating device: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private async Task ChangeWifi()
+    {
+        try
+        {
+            device.OffWifi = device.OffWifi == 1 ? 0 : 1;
+            await DeviceIotService.UpdateDeviceAsync(device);
+            Snackbar.Add("WiFi status updated successfully", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error updating WiFi status: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private void UpdateColor()
+    {
+        if (brightnessValue < 0 || brightnessValue > 100)
+            brightnessValue = 10;
+
+        int value = (int)(brightnessValue * 2.55);
+
+        redValue = value;
+        greenValue = value;
+        blueValue = value;
+    }
+
+    private void UpdateColorTemperature()
+    {
+        var (r, g, b) = ColorTemperatureToRGB(device.K);
+        redValue = r;
+        greenValue = g;
+        blueValue = b;
+    }
+
+    private (int R, int G, int B) ColorTemperatureToRGB(int kelvin)
+    {
+        double temp = kelvin / 100.0;
+        double red, green, blue;
+
+        if (temp <= 66)
+        {
+            red = 255;
+        }
+        else
+        {
+            red = temp - 60;
+            red = 329.698727446 * Math.Pow(red, -0.1332047592);
+            red = Math.Clamp(red, 0, 255);
+        }
+
+        if (temp <= 66)
+        {
+            green = temp;
+            green = 99.4708025861 * Math.Log(green) - 161.1195681661;
+            green = Math.Clamp(green, 0, 255);
+        }
+        else
+        {
+            green = temp - 60;
+            green = 288.1221695283 * Math.Pow(green, -0.0755148492);
+            green = Math.Clamp(green, 0, 255);
+        }
+
+        if (temp >= 66)
+        {
+            blue = 255;
+        }
+        else if (temp <= 19)
+        {
+            blue = 0;
+        }
+        else
+        {
+            blue = temp - 10;
+            blue = 138.5177312231 * Math.Log(blue) - 305.0447927307;
+            blue = Math.Clamp(blue, 0, 255);
+        }
+
+        return ((int)red, (int)green, (int)blue);
+    }
+}
+
+
