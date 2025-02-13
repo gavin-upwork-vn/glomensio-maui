@@ -1,9 +1,11 @@
 ﻿@page "/add-device-iot"
 @using GlomensioApp.Model
 @using GlomensioApp.Services
+@using MudBlazor
 @inject ISnackbar Snackbar
 @inject IDeviceIotService DeviceIotService;
 @inject NavigationManager Navigation
+<MudSnackbarProvider />
 <MudDialog>
     <TitleContent>
         <MudText Typo="Typo.h5">         
@@ -29,13 +31,20 @@
     {
         try
         {
-            await DeviceIotService.AddDeviceToUserAsync(device);
-            Snackbar.Add("Device create successfully", Severity.Success);
-            Navigation.NavigateTo("/home");
+           var isSuccess = await DeviceIotService.AddDeviceToUserAsync(device);
+            if (isSuccess)
+            {
+                Snackbar.Add("Device created successfully", Severity.Success);
+                Navigation.NavigateTo("/home");
+            }
+            else
+            {
+                Snackbar.Add("Device ID does not exist on the system", Severity.Error);
+                Navigation.NavigateTo("/home");
+            }
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Error create device: {ex.Message}", Severity.Error);
         }
     }
 

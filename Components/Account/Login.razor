@@ -80,11 +80,11 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var rememberLogin = await SecureStorage.GetAsync(StorageKey.RememberLogin);
+        var rememberLogin = Preferences.Get(StorageKey.RememberLogin,"");
         if ((rememberLogin == "true"))
         {
-            model.Email = await SecureStorage.GetAsync(StorageKey.Email);
-            model.Password = await SecureStorage.GetAsync(StorageKey.Password);
+            model.Email = Preferences.Get(StorageKey.Email,"");
+            model.Password = Preferences.Get(StorageKey.Password,"");
             model.RememberLogin = true;
         }
     }

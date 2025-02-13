@@ -1,11 +1,11 @@
-﻿using GlomensioApp.Commons;
+﻿
+using GlomensioApp.Commons;
 using GlomensioApp.Model;
 using Newtonsoft.Json;
 using Plugin.LocalNotification;
 using System.Reflection;
 using System.Text;
 using Timer = System.Timers.Timer;
-
 namespace GlomensioApp.Services;
 
 
@@ -233,18 +233,23 @@ public class DeviceIotService : IDeviceIotService
             var (isSuccess, response) = await PostAsync(apiUrl, device, false);
             if (isSuccess)
             {
-                var responseSetting = JsonConvert.DeserializeObject<DeviceIot>(response);
+                //var responseSetting = JsonConvert.DeserializeObject<DeviceIot>(response);
                 var deviceUpdate = _devices.FirstOrDefault(x => x.MacId == device.MacId);
                 if (deviceUpdate != null)
                 {
-                    CopyProperties(responseSetting, deviceUpdate);
+                    _devices.Remove(deviceUpdate);
+                    //CopyProperties(responseSetting, deviceUpdate);
                 }
             }
+            Console.WriteLine($"API Response: {response}");
+
 
             _isProcessingData = false;
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            Console.WriteLine($"Error removing device: {ex.Message}");
+
         }
 
     }
@@ -271,7 +276,9 @@ public class DeviceIotService : IDeviceIotService
                     CopyProperties(responseSetting, deviceUpdate);
                 }
             }
+            
             _isProcessingData = true;
+         
         }
         catch (Exception)
         {
@@ -279,13 +286,13 @@ public class DeviceIotService : IDeviceIotService
 
     }
 
-    public async Task AddDeviceToUserAsync(DeviceIot device)
+    public async Task<bool> AddDeviceToUserAsync(DeviceIot device)
     {
         try
         {
             if (!await CheckAccessInternet())
             {
-                return;
+                return false;
             }
 
             _isProcessingData = true;
@@ -300,11 +307,15 @@ public class DeviceIotService : IDeviceIotService
                 {
                     CopyProperties(responseSetting, deviceUpdate);
                 }
+                return true;
             }
+
             _isProcessingData = true;
+            return false;
         }
         catch (Exception)
         {
+            return true;
         }
 
     }
@@ -353,6 +364,18 @@ public class DeviceIotService : IDeviceIotService
             await LoadDevicesAsync();
         }
     }
+    public async Task OnChangeK(DeviceIot device)
+    {
+        var deviceUpdate = _devices.FirstOrDefault(x => x.MacId == device.MacId);
+        if (deviceUpdate != null)
+        {
+            isNotified = true;
+            deviceUpdate.K = device.K;
+            await UpdateDeviceAsync(deviceUpdate);
+            await LoadDevicesAsync();
+        }
+    }
+
 
     public async Task OnChangeEnableOTA(DeviceIot device)
     {
@@ -420,6 +443,9 @@ public class DeviceIotService : IDeviceIotService
         {
             return (true, await response.Content.ReadAsStringAsync().ConfigureAwait(false));
         }
-        return (false, string.Empty);
+        else       
+          return (false, string.Empty);
+        
+    
     }
 }

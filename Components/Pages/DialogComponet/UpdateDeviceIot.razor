@@ -1,6 +1,7 @@
 ﻿@page "/UpdateDeviceIot/{MacId}"
 @using GlomensioApp.Model
 @using GlomensioApp.Services
+@using MudBlazor
 @inject ISnackbar Snackbar
 @inject IDeviceIotService DeviceIotService;
 @inject NavigationManager Navigation
@@ -23,21 +24,31 @@
 
 <MudCard Class="bordered-card">
     <MudCardContent>
-        <MudText Typo="Typo.h6" Align="Align.Center">Disconnect Wifi</MudText>
-        <div class="centered-button">
-            <MudButton OnClick="ChangeWifi" Variant="Variant.Filled" Style="@($"background-color: {(device.OffWifi == 1 ? yellowgreen : red)}; color: white;")">
-                @(device.OffWifi == 1 ? "On" : "Off")
-            </MudButton>
-        </div>
+        <MudGrid Spacing="2">        
+            <MudItem xs="6">
+                <MudText Typo="Typo.h6" Align="Align.Center">Setting Color</MudText>
+                <div class="centered-button">
+                    <MudButton OnClick="SettingColor" Variant="Variant.Filled" DropShadow="false" Color="Color.Primary" FullWidth="true">Change Color</MudButton>
+                </div>
+            </MudItem>
+            <MudItem xs="6">
+                <MudText Typo="Typo.h6" Align="Align.Center">Disconnect Wifi</MudText>
+                <div class="centered-button">
+                    <MudButton FullWidth OnClick="ChangeWifi" Variant="Variant.Filled" Style="@($"background-color: {(device.OffWifi == 1 ? yellowgreen : red)}; color: white;")">
+                        @(device.OffWifi == 1 ? "On" : "Off")
+                    </MudButton>
+                </div>
+            </MudItem>
+        </MudGrid>
     </MudCardContent>
 </MudCard>
 <MudCard Class="bordered-card" Style="margin-top: 5px;">
     <MudCardContent>
         <MudTextField @bind-Value="device.MacId" Label="MacID" Variant="Variant.Text" ReadOnly> </MudTextField>
         @* <MudColorPicker PickerVariant="PickerVariant.Dialog" ShowToolbar="true" Label="Color picker:" @bind-Text="_colorValue" Placeholder="Select Color" /> *@
-        <MudSlider @onchange="UpdateColor" @bind-Value="brightnessValue" Min="10" Max="100" Color="Color.Info">Brightness: @brightnessValue</MudSlider>
+      @*   <MudSlider @onchange="UpdateColor" @bind-Value="brightnessValue" Min="10" Max="100" Color="Color.Info">Brightness: @brightnessValue</MudSlider>
         <MudSlider @onchange="UpdateColorTemperature" @bind-Value="kValue" Min="2700" Max="4000" Color="Color.Error">K: @kValue</MudSlider>
-        <MudText Style="@($"background-color: rgb({redValue}, {greenValue}, {blueValue})")">Color Display</MudText>
+        <MudText Style="@($"background-color: rgb({redValue}, {greenValue}, {blueValue})")">Color Display</MudText> *@
         <MudTextField @bind-Value="device.Duration" Label="Duration(s)" Variant="Variant.Text"> </MudTextField>
         <MudTextField @bind-Value="device.TimeActiveLed" Label="Time Active Led" Variant="Variant.Text"></MudTextField>
         <MudTextField @bind-Value="device.AlsMin" Label="AlsMin" Variant="Variant.Text"> </MudTextField>
@@ -47,10 +58,10 @@
     </MudCardContent>
     <MudGrid>
         <MudItem xs="6">
-            <MudButton OnClick="RemoveDevice" Variant="Variant.Filled" Color="Color.Error">Delete Device</MudButton>
+            <MudButton FullWidth OnClick="RemoveDevice" Variant="Variant.Filled" Color="Color.Error">Delete Device</MudButton>
         </MudItem>
         <MudItem xs="6">
-            <MudButton OnClick="UpdateDevice" Variant="Variant.Filled" Color="Color.Primary">Update Device</MudButton>
+            <MudButton FullWidth OnClick="UpdateDevice" Variant="Variant.Filled" Color="Color.Primary">Update Device</MudButton>
         </MudItem>
     </MudGrid>
 </MudCard>
@@ -141,6 +152,19 @@
         catch (Exception ex)
         {
             Snackbar.Add($"Error updating WiFi status: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private async Task SettingColor()
+    {
+        if (!string.IsNullOrEmpty(device?.MacId))
+        {
+            Navigation.NavigateTo($"/SettingColorDeviceIot/{device.MacId}");
+        }
+        else
+        {
+            // Nếu MacId không hợp lệ, có thể hiển thị thông báo lỗi (nếu cần)
+            Snackbar.Add("Invalid Device ID", Severity.Error);
         }
     }
 

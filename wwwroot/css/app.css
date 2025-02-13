@@ -86,3 +86,30 @@ h1:focus {
         padding-left: env(safe-area-inset-left);
     }
 }
+@keyframes blink {
+    0% {
+        background-color: green;
+    }
+
+    50% {
+        background-color: red;
+    }
+
+    100% {
+        background-color: green;
+    }
+}
+
+.blinking {
+    animation: blink 1s infinite;
+}
+
+.mud-color-picker {
+    border-radius: 50%; /* Make the picker area circular */
+    overflow: hidden; /* Ensure no content overflows */
+}
+
+    .mud-color-picker .mud-picker {
+        border-radius: 50%; /* Match the circle shape for the inner picker */
+    }
+

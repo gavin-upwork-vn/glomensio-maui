@@ -25,7 +25,7 @@
     <ApplicationTitle>GlomensioApp</ApplicationTitle>
 
     <!-- App Identifier -->
-    <ApplicationId>com.glomensio.glomensioapp</ApplicationId>
+    <ApplicationId>com.glomensio.hyperlight</ApplicationId>
 
     <!-- Versions -->
     <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
@@ -42,9 +42,37 @@
     <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'tizen'">6.5</SupportedOSPlatformVersion>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net9.0-android|AnyCPU'">
+    <AndroidPackageFormat>apk</AndroidPackageFormat>
+  </PropertyGroup>
+
+  <!--<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net9.0-ios|AnyCPU'">
+    <ApplicationDisplayVersion>1.1.1111</ApplicationDisplayVersion>
+    <ApplicationVersion>1.1.1111</ApplicationVersion>
+    <CodesignKey>Apple Distribution: Glomensio LLC (23677XY8BP)</CodesignKey>
+    <CodesignProvision>GlomensioApp</CodesignProvision>
+    <ApplicationId>com.glomensio.hyperlight</ApplicationId>
+    <CreatePackage>true</CreatePackage>
+    <MtouchLink>None</MtouchLink>
+    <UseInterpreter>True</UseInterpreter>
+
+  </PropertyGroup>
+
+
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net9.0-ios|AnyCPU'">
+    <_MauiForceXamlCForDebug>True</_MauiForceXamlCForDebug>
+    <UseInterpreter>False</UseInterpreter>
+    <ApplicationDisplayVersion>1.1.1111</ApplicationDisplayVersion>
+    <ApplicationVersion>1.1.1111</ApplicationVersion>
+    <CreatePackage>false</CreatePackage>
+    <CodesignProvision>Automatic</CodesignProvision>
+    <CodesignKey>Apple Distribution</CodesignKey>
+    <ApplicationId>com.glomensio.hyperlight</ApplicationId>
+  </PropertyGroup>-->
+
   <ItemGroup>
     <!-- App Icon -->
-    <MauiIcon Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\logo.png" Color="#949029" />
+    <MauiIcon Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appiconfg.svg" Color="#949029" />
 
     <!-- Splash Screen -->
     <MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#949029" BaseSize="128,128" />

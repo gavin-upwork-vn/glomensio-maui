@@ -1,4 +1,6 @@
 ﻿using GlomensioApp.Model;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace GlomensioApp.Services
 {
@@ -13,7 +15,8 @@ namespace GlomensioApp.Services
         Task OnChangeEmg(DeviceIot device);
         Task OnChangeEnableOTA(DeviceIot device);
         Task OnBlinkDevice(DeviceIot device);
-        Task AddDeviceToUserAsync(DeviceIot device);
+        //Task AddDeviceToUserAsync(DeviceIot device);
+        Task<bool> AddDeviceToUserAsync(DeviceIot device);
         Task RemoveDeviceAsync(DeviceIot device);
     }
 }
